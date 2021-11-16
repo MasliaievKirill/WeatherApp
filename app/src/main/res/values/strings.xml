@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Weather App</string>
+    <string name="text_hint">Введите название города или индекс</string>
+    <string name="search_weather">УЗНАТЬ ПОГОДУ</string>
+    <string name="params">Город:\nТемпература:\nНа улице:</string>
+    <string name="sun_img">Солнце</string>
+    <string name="cloud_img">Облако</string>
+    <string name="rain_img">Дождь</string>
+    <string name="lightning_img">Молния</string>
+    <string name="snow_img">Снег</string>
+    <string name="wind_img">Ветер</string>
+</resources>
