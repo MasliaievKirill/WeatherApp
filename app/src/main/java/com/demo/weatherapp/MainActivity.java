@@ -16,6 +16,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -33,7 +34,7 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean connection = false;
 
-    private String API_URL = "http://api.openweathermap.org/data/2.5/weather?q=%s&appid=03e3808f24e6b06be1dcbf1266c26dd6";
+    private final String API_URL = "http://api.openweathermap.org/data/2.5/weather?q=%s&appid=03e3808f24e6b06be1dcbf1266c26dd6&lang=ru&units=metric";
 
     private EditText editText;
     private TextView textView;
@@ -56,12 +57,24 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onClickSearch(View view) {
-        String town = editText.getText().toString().trim();
-        if(!town.isEmpty()) {
-            DownloadJSONTask task = new DownloadJSONTask();
-            String url = String.format(API_URL, town);
-            Log.i("URL", url);
-            task.execute(url);
+        checkConnection();
+        if (connection) {
+            String town = editText.getText().toString().trim();
+            if (!town.isEmpty()) {
+                DownloadJSONTask task = new DownloadJSONTask();
+                task.execute(String.format(API_URL, town));
+                Log.i("URL", String.format(API_URL, town));
+            }
+        } else {
+            Toast.makeText(this, "Отсутствует Интернет-соединение", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void checkConnection () {
+        ConnectivityManager connectivityManager = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
+        if(connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE).getState() == NetworkInfo.State.CONNECTED ||
+                connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI).getState() == NetworkInfo.State.CONNECTED) {
+            connection = true;
         }
     }
 
@@ -84,7 +97,6 @@ public class MainActivity extends AppCompatActivity {
                     result.append(line);
                     line = reader.readLine();
                 }
-                Log.i("res", result.toString());
                 return result.toString();
             } catch (MalformedURLException e) {
                 e.printStackTrace();
@@ -103,13 +115,17 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
             try {
-                JSONObject jsonObject = new JSONObject(s);
-                String townName = jsonObject.getString("name");
-                String tempValue = jsonObject.getJSONObject("main").getString("temp");
-                String weatherDescription = jsonObject.getJSONArray("weather").getJSONObject(0).getString("description");
-                String info = String.format("Город: %s\nТемпература: %s\nНа улице: %s", townName, tempValue, weatherDescription);
-                Log.i("INFO", info);
-                textView.setText(info);
+                if (s != null) {
+                    JSONObject jsonObject = new JSONObject(s);
+                    String townName = jsonObject.getString("name");
+                    String tempValue = jsonObject.getJSONObject("main").getString("temp");
+                    String weatherDescription = jsonObject.getJSONArray("weather").getJSONObject(0).getString("description");
+                    String info = String.format("Город: %s\nТемпература: %s  C°\nНа улице: %s", townName, tempValue, weatherDescription);
+                    Log.i("INFO", info);
+                    textView.setText(info);
+                } else {
+                    textView.setText("Ошибка загрузки");
+                }
             } catch (JSONException e) {
                 e.printStackTrace();
             }
